@@ -242,7 +242,7 @@ Mojo::XMLRPC - An XMLRPC message parser/encoder using the Mojo stack
   my $ua = Mojo::UserAgent->new;
   my $url = ...;
   my $tx = $ua->post($url, encode_xmlrpc(request => 'mymethod', 'myarg'));
-  my $res = decode_xmlrpc($tx->body)
+  my $res = decode_xmlrpc($tx->res->body)
 
 =head1 DESCRIPTION
 
