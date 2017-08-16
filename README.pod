@@ -1,0 +1,45 @@
+=encoding utf8
+
+=head1 NAME
+
+Mojo::XMLRPC - An XMLRPC message parser/encoder using the Mojo stack
+
+=head1 SYNOPSIS
+
+  use Mojo::UserAgent;
+  use Mojo::XMLRPC qw[to_xmlrpc from_xmlrpc];
+
+  my $ua = Mojo::UserAgent->new;
+  my $url = ...;
+  my $tx = $ua->post($url, encode_xmlrpc(request => 'mymethod', 'myarg'));
+  my $res = decode_xmlrpc($tx->body)
+
+=head1 DESCRIPTION
+
+L<Mojo::XMLRPC> is a pure-perl XML-RPC message parser and encoder.
+It uses tools from the L<Mojo> toolkit to do all of the work.
+
+This does not mean that it must only be used in conjunction with a L<Mojolicious> app, far from it.
+Feel free to use it in any circumstance that needs XML-RPC messages.
+
+=head1 THANKS
+
+This module was inspired by L<XMLRPC::Fast> written by Sébastien Aperghis-Tramoni.
+
+L<Mojo::XMLRPC> was a port of that module initially to use the L<Mojo::DOM> module rather than L<XML::Parser>.
+By the time port to the Mojo stack was complete, the module was entirely rewritten.
+That said, the algorithm still owes a debt of gratitude to that one.
+
+=head1 SOURCE REPOSITORY
+
+L<http://github.com/jberger/Mojo-XMLRPC>
+
+=head1 AUTHOR
+
+Joel Berger, E<lt>joel.a.berger@gmail.comE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2017 by Joel Berger
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
