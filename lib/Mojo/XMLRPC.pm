@@ -195,7 +195,7 @@ sub _encode_item {
         return _encode_item($item->TO_JSON);
 
       } else {
-        $ret = "$item";
+        return _encode_item("$item");
       }
     } elsif (ref $item eq 'ARRAY') {
       $ret = join '', map { '<value>' . _encode_item($_) . '</value>' } @$item;
@@ -251,6 +251,96 @@ It uses tools from the L<Mojo> toolkit to do all of the work.
 
 This does not mean that it must only be used in conjunction with a L<Mojolicious> app, far from it.
 Feel free to use it in any circumstance that needs XML-RPC messages.
+
+=head1 MAPPING
+
+The mapping between Perl types and XMLRPC types is not perfectly one-to-one, especially given Perl's scalar types.
+The following is a description of the procedure used to encode and decode XMLRPC message from/to Perl.
+
+=head2 Perl to XMLRPC
+
+If the item is a blessed reference:
+
+=over
+
+=item *
+
+If the item/object implements a C<TO_XMLRPC> method, it is called and the result is encoded.
+
+=item *
+
+If the item is a L<JSON::PP::Boolean>, as the L<Mojo::JSON> booleans are, it is encoded as a C<boolean>.
+
+=item *
+
+If the item is a L<Mojo::Date> then it is encoded as a C<dateTime.iso8601>.
+
+=item *
+
+If the item is a L<Mojo::XMLRPC::Base64> then it is encode as a C<base64>.
+This wrapper class is used to distinguish a string from a base64 and aid in encoding/decoding.
+
+=item
+
+If the item/object implements a C<TO_JSON> method, it is called and the result is encoded.
+
+=item
+
+If none of the above cases are true, the item is stringified and encoded as a C<string>.
+
+=back
+
+If the item is an unblessed reference:
+
+=over
+
+=item *
+
+An array reference is encoded as an C<array>.
+
+=item *
+
+A hash reference is encoded as a C<struct>.
+
+=item *
+
+A scalar reference is encoded as a C<boolean> depending on the truthiness of the referenced value.
+This is the standard shortcut seen in JSON modules allowing C<\1> for true and C<\0> for false.
+
+=back
+
+If the item is a non-reference scalar:
+
+=over
+
+=item *
+
+If the item is undefined it is encoded as C<< <nil/> >>.
+
+=item *
+
+If the item has C<NOK> (it has been used as a floating point number) it is encoded as C<double>.
+
+=item *
+
+If the item has C<IOK> (it has been used as an integer (and not a float)) it is encoded as a C<double>.
+
+=item *
+
+All other values are encoded as C<string>.
+
+=back
+
+
+=head2 XMLRPC to Perl
+
+Most values decode back into Perl in a manner that would survive a round trip.
+The exceptions are blessed objects that implement C<TO_XMLRPC> or C<TO_JSON> or are stringified.
+The shortcuts for booleans will round-trip to being L<Mojo::JSON> booleans objects.
+
+Values encoded as integers will not be truncated via C<int> however no attempt is made to upgrade them to C<IOK> or C<NOK>.
+Values encoded as floating point C<double> will be forcably upgraded to C<NOK> (by dividing by 1.0).
+This is so that an integer value encoded as a floating point will round trip, the reverse case isn't as useful and thus isn't handled.
 
 =head1 THANKS
 
