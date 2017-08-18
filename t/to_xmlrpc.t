@@ -168,6 +168,24 @@ is $dom->at('methodCall > methodName')->text, 'var.set', 'correct method name';
 is $dom->at('methodCall > params > param:nth-of-type(1) > value > int')->text, 1, 'correct handling of value';
 is $dom->at('methodCall > params > param:nth-of-type(2) > value > string')->text, 'hello', 'correct handling of value';
 
+# object invocation
+
+$dom = dom(Mojo::XMLRPC::Message::Call->new(method_name => 'mycall', parameters => ['hi']));
+is $dom->at('methodCall > methodName')->text, 'mycall', 'correct method name';
+is $dom->at('methodCall > params > param > value > string')->text, 'hi', 'correct parameter';
+
+$dom = dom(Mojo::XMLRPC::Message::Response->new(parameters => ['hi']));
+is $dom->at('methodResponse > params > param > value > string')->text, 'hi', 'correct parameter';
+
+{
+  $dom = dom(Mojo::XMLRPC::Message::Response->new(fault => {faultCode => 400, faultString => 'error'}));
+  my %got;
+  $dom->find('methodResponse > fault > value > struct > member')->each(sub {
+    $got{ $_->at('name')->text } = $_->at('value')->all_text;
+  });
+  is_deeply \%got, { faultCode => 400, faultString => 'error'}, 'correct fault values';
+}
+
 done_testing;
 
 

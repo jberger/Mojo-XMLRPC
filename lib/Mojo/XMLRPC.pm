@@ -8,8 +8,11 @@ use Mojo::Date;
 use Mojo::DOM;
 use Mojo::JSON;
 use Mojo::Template;
-use Mojo::XMLRPC::Base64;
 use Scalar::Util ();
+
+use Mojo::XMLRPC::Base64;
+use Mojo::XMLRPC::Message::Call;
+use Mojo::XMLRPC::Message::Response;
 
 use Exporter 'import';
 
@@ -110,6 +113,19 @@ sub from_xmlrpc {
 
 sub to_xmlrpc {
   my ($type, @args) = @_;
+
+  if (Scalar::Util::blessed($type) && $type->isa('Mojo::XMLRPC::Message')) {
+    my $obj = $type;
+    if ($obj->isa('Mojo::XMLRPC::Message::Call')) {
+      $type = 'method';
+      @args = ($obj->method_name, @{ $obj->parameters });
+    } elsif ($obj->isa('Mojo::XMLRPC::Message::Response')) {
+      $type = $obj->is_fault ? 'fault' : 'response';
+      @args = $obj->is_fault ? @{ $obj->fault }{qw/faultCode faultString/} : @{ $obj->parameters };
+    } else {
+      die 'Message type not understood';
+    }
+  }
 
   my $tag    = $type eq 'method' ? 'methodCall' : 'methodResponse';
   my $method = $type eq 'method' ? shift @args  : undef;
