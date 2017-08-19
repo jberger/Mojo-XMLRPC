@@ -25,50 +25,50 @@ my $pviv10 = 1234567890; $s = "$pviv10";
 my $pvnv   = 3.14159;    $s = "$pvnv";
 
 # empty values
-my $dom = dom(method => 'var.set');
+my $dom = dom(call => 'var.set');
 is $dom->at('methodCall > methodName')->text, 'var.set', 'correct method name';
 
-$dom = dom(method => 'var.set', undef);
+$dom = dom(call => 'var.set', undef);
 is $dom->at('methodCall > methodName')->text, 'var.set', 'correct method name';
 ok $dom->at('methodCall > params > param > value > nil'), 'correct handling of undef';
 
 # integer values
 
-$dom = dom(method => 'var.set', 0);
+$dom = dom(call => 'var.set', 0);
 is $dom->at('methodCall > methodName')->text, 'var.set', 'correct method name';
 is $dom->at('methodCall > params > param > value > int')->text, 0, 'correct handling of value';
 
-$dom = dom(method => 'var.set', 123);
+$dom = dom(call => 'var.set', 123);
 is $dom->at('methodCall > methodName')->text, 'var.set', 'correct method name';
 is $dom->at('methodCall > params > param > value > int')->text, 123, 'correct handling of value';
 
-$dom = dom(method => 'var.set', $iv);
+$dom = dom(call => 'var.set', $iv);
 is $dom->at('methodCall > methodName')->text, 'var.set', 'correct method name';
 is $dom->at('methodCall > params > param > value > int')->text, $iv, 'correct handling of value';
 
-$dom = dom(method => 'var.set', $pviv6);
+$dom = dom(call => 'var.set', $pviv6);
 is $dom->at('methodCall > methodName')->text, 'var.set', 'correct method name';
 is $dom->at('methodCall > params > param > value > int')->text, $pviv6, 'correct handling of value';
 
-$dom = dom(method => 'var.set', $pviv10);
+$dom = dom(call => 'var.set', $pviv10);
 is $dom->at('methodCall > methodName')->text, 'var.set', 'correct method name';
 is $dom->at('methodCall > params > param > value > int')->text, $pviv10, 'correct handling of value';
 
 # floating point values
 
-$dom = dom(method => 'var.set', 0.);
+$dom = dom(call => 'var.set', 0.);
 is $dom->at('methodCall > methodName')->text, 'var.set', 'correct method name';
 is $dom->at('methodCall > params > param > value > double')->text, 0, 'correct handling of value';
 
-$dom = dom(method => 'var.set', 3.14);
+$dom = dom(call => 'var.set', 3.14);
 is $dom->at('methodCall > methodName')->text, 'var.set', 'correct method name';
 is $dom->at('methodCall > params > param > value > double')->text, 3.14, 'correct handling of value';
 
-$dom = dom(method => 'var.set', $nv);
+$dom = dom(call => 'var.set', $nv);
 is $dom->at('methodCall > methodName')->text, 'var.set', 'correct method name';
 is $dom->at('methodCall > params > param > value > double')->text, $nv, 'correct handling of value';
 
-$dom = dom(method => 'var.set', $pvnv);
+$dom = dom(call => 'var.set', $pvnv);
 is $dom->at('methodCall > methodName')->text, 'var.set', 'correct method name';
 is $dom->at('methodCall > params > param > value > double')->text, $pvnv, 'correct handling of value';
 
@@ -90,46 +90,46 @@ my @strings = (qw/
 /);
 
 for my $string (@strings) {
-  $dom = dom(method => 'var.set', $string);
+  $dom = dom(call => 'var.set', $string);
   is $dom->at('methodCall > methodName')->text, 'var.set', 'correct method name';
   is $dom->at('methodCall > params > param > value > string')->text, $string, 'correct handling of value';
 }
 
-$dom = dom(method => 'var.set', $pv);
+$dom = dom(call => 'var.set', $pv);
 is $dom->at('methodCall > methodName')->text, 'var.set', 'correct method name';
 is $dom->at('methodCall > params > param > value > string')->text, $pv, 'correct handling of value';
 
 # boolean
 
-$dom = dom(method => 'var.set', Mojo::JSON::true);
+$dom = dom(call => 'var.set', Mojo::JSON::true);
 is $dom->at('methodCall > methodName')->text, 'var.set', 'correct method name';
 is $dom->at('methodCall > params > param > value > boolean')->text, 1, 'correct handling of value';
 
-$dom = dom(method => 'var.set', Mojo::JSON::false);
+$dom = dom(call => 'var.set', Mojo::JSON::false);
 is $dom->at('methodCall > methodName')->text, 'var.set', 'correct method name';
 is $dom->at('methodCall > params > param > value > boolean')->text, 0, 'correct handling of value';
 
-$dom = dom(method => 'var.set', \1);
+$dom = dom(call => 'var.set', \1);
 is $dom->at('methodCall > methodName')->text, 'var.set', 'correct method name';
 is $dom->at('methodCall > params > param > value > boolean')->text, 1, 'correct handling of value';
 
-$dom = dom(method => 'var.set', \0);
+$dom = dom(call => 'var.set', \0);
 is $dom->at('methodCall > methodName')->text, 'var.set', 'correct method name';
 is $dom->at('methodCall > params > param > value > boolean')->text, 0, 'correct handling of value';
 
 # datetime
 
-$dom = dom(method => 'var.set', Mojo::Date->new(900684535));
+$dom = dom(call => 'var.set', Mojo::Date->new(900684535));
 is $dom->at('methodCall > methodName')->text, 'var.set', 'correct method name';
 is $dom->at('methodCall > params > param > value > dateTime\.iso8601')->text, '1998-07-17T14:08:55Z', 'correct handling of value';
 
 # base64
 
-$dom = dom(method => 'var.set', Mojo::XMLRPC::Base64->new(encoded => 'eW91IGNhbid0IHJlYWQgdGhpcyE='));
+$dom = dom(call => 'var.set', Mojo::XMLRPC::Base64->new(encoded => 'eW91IGNhbid0IHJlYWQgdGhpcyE='));
 is $dom->at('methodCall > methodName')->text, 'var.set', 'correct method name';
 is $dom->at('methodCall > params > param > value > base64')->text, 'eW91IGNhbid0IHJlYWQgdGhpcyE=', 'correct handling of value';
 
-$dom = dom(method => 'var.set', Mojo::XMLRPC::Base64->new->decoded(q[you can't read this!]));
+$dom = dom(call => 'var.set', Mojo::XMLRPC::Base64->new->decoded(q[you can't read this!]));
 is $dom->at('methodCall > methodName')->text, 'var.set', 'correct method name';
 is $dom->at('methodCall > params > param > value > base64')->text, 'eW91IGNhbid0IHJlYWQgdGhpcyE=', 'correct handling of value';
 
@@ -137,7 +137,7 @@ is $dom->at('methodCall > params > param > value > base64')->text, 'eW91IGNhbid0
 
 {
   my %input = (yo => 'dawg', hi => 'bye');
-  $dom = dom(method => 'var.set', \%input);
+  $dom = dom(call => 'var.set', \%input);
   is $dom->at('methodCall > methodName')->text, 'var.set', 'correct method name';
   my $struct = $dom->at('methodCall > params > param > value > struct');
   ok $struct, 'got a struct';
@@ -153,7 +153,7 @@ is $dom->at('methodCall > params > param > value > base64')->text, 'eW91IGNhbid0
 
 {
   my @input = (qw/the quick dog/);
-  $dom = dom(method => 'var.set', \@input);
+  $dom = dom(call => 'var.set', \@input);
   is $dom->at('methodCall > methodName')->text, 'var.set', 'correct method name';
   my $array = $dom->at('methodCall > params > param > value > array > data');
   ok $array, 'got array';
@@ -163,7 +163,7 @@ is $dom->at('methodCall > params > param > value > base64')->text, 'eW91IGNhbid0
 
 # multiple parameters
 
-$dom = dom(method => 'var.set', 1, 'hello');
+$dom = dom(call => 'var.set', 1, 'hello');
 is $dom->at('methodCall > methodName')->text, 'var.set', 'correct method name';
 is $dom->at('methodCall > params > param:nth-of-type(1) > value > int')->text, 1, 'correct handling of value';
 is $dom->at('methodCall > params > param:nth-of-type(2) > value > string')->text, 'hello', 'correct handling of value';

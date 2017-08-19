@@ -16,10 +16,10 @@ post '/' => sub {
 my $t = Test::Mojo->new;
 
 subtest 'fault' => sub {
-  $t->post_ok('/', encode_xmlrpc(method => 'notecho', 42))
+  $t->post_ok('/', encode_xmlrpc(call => 'notecho', 42))
     ->status_is(200);
   my $response = decode_xmlrpc($t->tx->res->body);
-  
+
   my %expect = (
     faultCode => 400,
     faultString => 'Only echo is supported',

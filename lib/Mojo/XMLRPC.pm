@@ -114,7 +114,7 @@ sub to_xmlrpc {
   if (Scalar::Util::blessed($type) && $type->isa('Mojo::XMLRPC::Message')) {
     my $obj = $type;
     if ($obj->isa('Mojo::XMLRPC::Message::Call')) {
-      $type = 'method';
+      $type = 'call';
       @args = ($obj->method_name, @{ $obj->parameters });
     } elsif ($obj->isa('Mojo::XMLRPC::Message::Response')) {
       $type = $obj->is_fault ? 'fault' : 'response';
@@ -124,8 +124,8 @@ sub to_xmlrpc {
     }
   }
 
-  my $tag    = $type eq 'method' ? 'methodCall' : 'methodResponse';
-  my $method = $type eq 'method' ? shift @args  : undef;
+  my $tag    = $type eq 'call' ? 'methodCall' : 'methodResponse';
+  my $method = $type eq 'call' ? shift @args  : undef;
 
   my $xml =
     $type eq 'fault' ? $fault->process(@args) :
@@ -378,20 +378,16 @@ The input may be a L<Mojo::XMLRPC::Message> or it could be of the following form
 
 =item *
 
-A message type, one of C<method>, C<response>, C<fault>.
+A message type, one of C<call>, C<response>, C<fault>.
 
 =item *
 
-If the message type is C<method>, then the method name.
-
-=item *
-
-If the message is a C<fault>, then the fault code followed by the fault string.
+If the message type is C<call>, then the method name.
 
 =item *
 
 If the message is not a C<fault>, then all remaining arguments are parameters.
-If the message is a C<fault>, all remaining arguments are ignored.
+If the message is a C<fault>, then the fault code followed by the fault string, all remaining arguments are ignored.
 
 =back
 
