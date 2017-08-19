@@ -5,7 +5,7 @@ use Test::More;
 use Mojo::XMLRPC 'from_xmlrpc';
 use Scalar::Util 'blessed';
 
-my $struct = from_xmlrpc(<<'MESSAGE');
+my $msg = from_xmlrpc(<<'MESSAGE');
 <?xml version="1.0"?>
 <methodCall>
    <methodName>examples.getStateName</methodName>
@@ -17,13 +17,11 @@ my $struct = from_xmlrpc(<<'MESSAGE');
    </methodCall>
 MESSAGE
 
-is_deeply $struct, {
-  type => 'request',
-  methodName => 'examples.getStateName',
-  params => [41],
-}, 'correct message parse';
+isa_ok $msg, 'Mojo::XMLRPC::Message::Call', 'correct message type';
+is $msg->method_name, 'examples.getStateName', 'correct method';
+is_deeply $msg->parameters, [41], 'correct parameters';
 
-$struct = from_xmlrpc(<<'MESSAGE');
+$msg = from_xmlrpc(<<'MESSAGE');
 <?xml version="1.0"?>
 <methodCall>
    <methodName>examples.getStateName</methodName>
@@ -35,13 +33,11 @@ $struct = from_xmlrpc(<<'MESSAGE');
    </methodCall>
 MESSAGE
 
-is_deeply $struct, {
-  type => 'request',
-  methodName => 'examples.getStateName',
-  params => [3.14],
-}, 'correct message parse';
+isa_ok $msg, 'Mojo::XMLRPC::Message::Call', 'correct message type';
+is $msg->method_name, 'examples.getStateName', 'correct method';
+is_deeply $msg->parameters, [3.14], 'correct parameters';
 
-$struct = from_xmlrpc(<<'MESSAGE');
+$msg = from_xmlrpc(<<'MESSAGE');
 <?xml version="1.0"?>
 <methodResponse>
    <params>
@@ -52,12 +48,11 @@ $struct = from_xmlrpc(<<'MESSAGE');
    </methodResponse>
 MESSAGE
 
-is_deeply $struct, {
-  type => 'response',
-  params => ['South Dakota'],
-}, 'correct message parse';
+isa_ok $msg, 'Mojo::XMLRPC::Message::Response', 'correct message type';
+ok !$msg->is_fault, 'not a fault';
+is_deeply $msg->parameters, ['South Dakota'], 'correct parameters';
 
-$struct = from_xmlrpc(<<'MESSAGE');
+$msg = from_xmlrpc(<<'MESSAGE');
 <?xml version="1.0"?>
 <methodResponse>
    <params>
@@ -68,12 +63,11 @@ $struct = from_xmlrpc(<<'MESSAGE');
    </methodResponse>
 MESSAGE
 
-is_deeply $struct, {
-  type => 'response',
-  params => [undef],
-}, 'correct message parse';
+isa_ok $msg, 'Mojo::XMLRPC::Message::Response', 'correct message type';
+ok !$msg->is_fault, 'not a fault';
+is_deeply $msg->parameters, [undef], 'correct parameters';
 
-$struct = from_xmlrpc(<<'MESSAGE');
+$msg = from_xmlrpc(<<'MESSAGE');
 <?xml version="1.0"?>
 <methodResponse>
    <params>
@@ -84,11 +78,11 @@ $struct = from_xmlrpc(<<'MESSAGE');
    </methodResponse>
 MESSAGE
 
-is $struct->{type}, 'response', 'correct response type';
-ok $struct->{params}[0], 'value is true';
-ok blessed($struct->{params}[0]), 'is an object';
+isa_ok $msg, 'Mojo::XMLRPC::Message::Response', 'correct message type';
+ok !$msg->is_fault, 'not a fault';
+is_deeply $msg->parameters, [Mojo::JSON::true], 'correct parameters';
 
-$struct = from_xmlrpc(<<'MESSAGE');
+$msg = from_xmlrpc(<<'MESSAGE');
 <?xml version="1.0"?>
 <methodResponse>
    <params>
@@ -99,11 +93,11 @@ $struct = from_xmlrpc(<<'MESSAGE');
    </methodResponse>
 MESSAGE
 
-is $struct->{type}, 'response', 'correct response type';
-ok !$struct->{params}[0], 'value is false';
-ok blessed($struct->{params}[0]), 'is an object';
+isa_ok $msg, 'Mojo::XMLRPC::Message::Response', 'correct message type';
+ok !$msg->is_fault, 'not a fault';
+is_deeply $msg->parameters, [Mojo::JSON::false], 'correct parameters';
 
-$struct = from_xmlrpc(<<'MESSAGE');
+$msg = from_xmlrpc(<<'MESSAGE');
 <?xml version="1.0"?>
 <methodResponse>
    <params>
@@ -114,11 +108,15 @@ $struct = from_xmlrpc(<<'MESSAGE');
    </methodResponse>
 MESSAGE
 
-is $struct->{type}, 'response', 'correct response type';
-isa_ok $struct->{params}[0], 'Mojo::Date', 'got a Mojo::Date';
-is $struct->{params}[0]->epoch, 900684535, 'got the correct date';
+{
+  isa_ok $msg, 'Mojo::XMLRPC::Message::Response', 'correct message type';
+  ok !$msg->is_fault, 'not a fault';
+  my $date = $msg->parameters->[0];
+  isa_ok $date, 'Mojo::Date', 'got a Mojo::Date';
+  is $date->epoch, 900684535, 'got the correct date';
+}
 
-$struct = from_xmlrpc(<<'MESSAGE');
+$msg = from_xmlrpc(<<'MESSAGE');
 <?xml version="1.0"?>
 <methodResponse>
    <params>
@@ -129,11 +127,15 @@ $struct = from_xmlrpc(<<'MESSAGE');
    </methodResponse>
 MESSAGE
 
-is $struct->{type}, 'response', 'correct response type';
-isa_ok $struct->{params}[0], 'Mojo::Date', 'got a Mojo::Date';
-is $struct->{params}[0]->epoch, 900684535, 'got the correct date';
+{
+  isa_ok $msg, 'Mojo::XMLRPC::Message::Response', 'correct message type';
+  ok !$msg->is_fault, 'not a fault';
+  my $date = $msg->parameters->[0];
+  isa_ok $date, 'Mojo::Date', 'got a Mojo::Date';
+  is $date->epoch, 900684535, 'got the correct date';
+}
 
-$struct = from_xmlrpc(<<'MESSAGE');
+$msg = from_xmlrpc(<<'MESSAGE');
 <?xml version="1.0"?>
 <methodResponse>
    <params>
@@ -144,12 +146,16 @@ $struct = from_xmlrpc(<<'MESSAGE');
    </methodResponse>
 MESSAGE
 
-is $struct->{type}, 'response', 'correct response type';
-isa_ok $struct->{params}[0], 'Mojo::XMLRPC::Base64', 'got a Mojo::XMLRPC::Base64 object';
-is $struct->{params}[0]->encoded, 'eW91IGNhbid0IHJlYWQgdGhpcyE=', 'got the encoded data';
-is $struct->{params}[0]->decoded, q[you can't read this!], 'got the decoded data';
+{
+  isa_ok $msg, 'Mojo::XMLRPC::Message::Response', 'correct message type';
+  ok !$msg->is_fault, 'not a fault';
+  my $base64 = $msg->parameters->[0];
+  isa_ok $base64, 'Mojo::XMLRPC::Base64', 'got a Mojo::XMLRPC::Base64 object';
+  is $base64->encoded, 'eW91IGNhbid0IHJlYWQgdGhpcyE=', 'got the encoded data';
+  is $base64->decoded, q[you can't read this!], 'got the decoded data';
+}
 
-$struct = from_xmlrpc(<<'MESSAGE');
+$msg = from_xmlrpc(<<'MESSAGE');
 <?xml version="1.0"?>
 <methodResponse>
    <params>
@@ -169,12 +175,11 @@ $struct = from_xmlrpc(<<'MESSAGE');
   </methodResponse>
 MESSAGE
 
-is_deeply $struct, {
-  type => 'response',
-  params => [[12, 'Egypt', Mojo::JSON::false, -31]],
-}, 'correct message parse';
+isa_ok $msg, 'Mojo::XMLRPC::Message::Response', 'correct message type';
+ok !$msg->is_fault, 'not a fault';
+is_deeply $msg->parameters, [[12, 'Egypt', Mojo::JSON::false, -31]], 'correct parameters';
 
-$struct = from_xmlrpc(<<'MESSAGE');
+$msg = from_xmlrpc(<<'MESSAGE');
 <?xml version="1.0"?>
 <methodResponse>
    <fault>
@@ -194,13 +199,12 @@ $struct = from_xmlrpc(<<'MESSAGE');
    </methodResponse>
 MESSAGE
 
-is_deeply $struct, {
-  type => 'fault',
-  fault => {
-   faultCode => 4,
-   faultString => 'Too many parameters.',
-  },
-}, 'correct message parse';
+isa_ok $msg, 'Mojo::XMLRPC::Message::Response', 'correct message type';
+ok $msg->is_fault, 'not a fault';
+is_deeply $msg->fault, {
+  faultCode => 4,
+  faultString => 'Too many parameters.',
+}, 'correct parameters';
 
 done_testing;
 

@@ -80,35 +80,32 @@ sub from_xmlrpc {
 
   # parse the XML document
   my $dom = Mojo::DOM->new($xml);
-  my %struct;
+  my $msg;
 
   # detect the message type
   my $top  = $dom->children->first;
   my $type = $top->tag;
   if ($type eq 'methodCall') {
-    $struct{type} = 'request';
+    $msg = Mojo::XMLRPC::Message::Call->new;
     if (defined(my $method = $top->children('methodName')->first)) {
-      $struct{methodName} = $method->text;
+      $msg->method_name($method->text);
     }
 
   } elsif ($type eq 'methodResponse') {
+    $msg = Mojo::XMLRPC::Message::Response->new;
     if (defined(my $fault = $top->children('fault')->first)) {
-      return {
-        type  => 'fault',
-        fault => scalar _decode_element($fault),
-      };
+      return $msg->fault(_decode_element($fault));
     }
-    $struct{type} = 'response';
 
   } else {
     die 'unknown type of message';
   }
 
   if (defined(my $params = $top->children('params')->first)) {
-    $struct{params} = [ map { _decode_element($_) } @{ $params->children('param') } ];
+    $msg->parameters([ map { _decode_element($_) } @{ $params->children('param') } ]);
   }
 
-  return \%struct;
+  return $msg;
 }
 
 sub to_xmlrpc {

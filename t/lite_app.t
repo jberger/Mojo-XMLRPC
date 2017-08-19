@@ -19,14 +19,12 @@ subtest 'fault' => sub {
   $t->post_ok('/', encode_xmlrpc(method => 'notecho', 42))
     ->status_is(200);
   my $response = decode_xmlrpc($t->tx->res->body);
+  
   my %expect = (
-    type => 'fault',
-    fault => {
-      faultCode => 400,
-      faultString => 'Only echo is supported',
-    }
+    faultCode => 400,
+    faultString => 'Only echo is supported',
   );
-  is_deeply $response, \%expect, 'correct fault response';
+  is_deeply $response->fault, \%expect, 'correct fault response';
 };
 
 done_testing;
