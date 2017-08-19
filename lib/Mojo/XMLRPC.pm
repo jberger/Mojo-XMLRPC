@@ -344,7 +344,6 @@ All other values are encoded as C<string>.
 
 =back
 
-
 =head2 XMLRPC to Perl
 
 Most values decode back into Perl in a manner that would survive a round trip.
@@ -354,6 +353,50 @@ The shortcuts for booleans will round-trip to being L<Mojo::JSON> booleans objec
 Values encoded as integers will not be truncated via C<int> however no attempt is made to upgrade them to C<IOK> or C<NOK>.
 Values encoded as floating point C<double> will be forcably upgraded to C<NOK> (by dividing by 1.0).
 This is so that an integer value encoded as a floating point will round trip, the reverse case isn't as useful and thus isn't handled.
+
+=head1 FUNCTIONS
+
+=head2 decode_xmlrpc
+
+Like L</from_xmlrpc> but first decodes from UTF-8 encoded bytes.
+
+=head2 encode_xmlrpc
+
+Like L</to_xmlrpc> but encodes the result to UTF-8 encoded bytes.
+
+=head2 from_xmlrpc
+
+Takes a character string, interprets it, and returns a L<Mojo::XMLRPC::Message> containing the result.
+If the input is UTF-8 encoded bytes, you can use L</decode_xmlrpc> instead.
+
+=head2 to_xmlrpc
+
+Generates an XMLRPC message from data passed to the function.
+The input may be a L<Mojo::XMLRPC::Message> or it could be of the following form.
+
+=over
+
+=item *
+
+A message type, one of C<method>, C<response>, C<fault>.
+
+=item *
+
+If the message type is C<method>, then the method name.
+
+=item *
+
+If the message is a C<fault>, then the fault code followed by the fault string.
+
+=item *
+
+If the message is not a C<fault>, then all remaining arguments are parameters.
+If the message is a C<fault>, all remaining arguments are ignored.
+
+=back
+
+The return value is a character string.
+To generate UTF-8 encoded bytes, you can use L</encode_xmlrpc> instead.
 
 =head1 THANKS
 

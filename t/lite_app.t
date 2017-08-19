@@ -8,7 +8,7 @@ use Mojo::XMLRPC qw[encode_xmlrpc decode_xmlrpc];
 post '/' => sub {
   my $c = shift;
   my $message = decode_xmlrpc($c->req->body);
-  unless ($message->{methodName} eq 'echo') {
+  unless ($message->method_name eq 'echo') {
     return $c->render(data => encode_xmlrpc(fault => 400, 'Only echo is supported'));
   }
 };
