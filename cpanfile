@@ -1,1 +1,1 @@
-requires 'Mojolicious', '== 7.0';
+requires 'Mojolicious', '7.0';
