@@ -180,7 +180,16 @@ sub _decode_element {
     my $date = Mojo::Date->new($elem->text);
     unless ($date->epoch) {
       require Time::Piece;
-      $date->epoch(Time::Piece->strptime($elem->text, '%Y%m%dT%H:%M:%S')->epoch);
+      my $text = $elem->text;
+      PARSE: for my $time_format ('%H:%M:%S', '%H%M%S') {
+        for my $calendar_format ('%Y%m%d', '%Y-%m-%d') {
+          my $format = $calendar_format . 'T' . $time_format;
+          eval {
+            $date->epoch(Time::Piece->strptime($text, $format)->epoch);
+          };
+          last PARSE unless $@;
+        }
+      }
     }
     return $date;
   } elsif ($tag eq 'base64') {
