@@ -18,7 +18,7 @@ use Exporter 'import';
 
 our @EXPORT_OK = (qw[decode_xmlrpc encode_xmlrpc from_xmlrpc to_xmlrpc]);
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 $VERSION = eval $VERSION;
 
 my $message = Mojo::Template->new(
@@ -425,8 +425,12 @@ L<http://github.com/jberger/Mojo-XMLRPC>
 
 Joel Berger, E<lt>joel.a.berger@gmail.comE<gt>
 
+=head1 CONTRIBUTORS
+
+Andreas Vögele (voegelas)
+
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2017 by Joel Berger
+Copyright (C) 2017 by L</AUTHOR> and L</CONTRIBUTORS>
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
