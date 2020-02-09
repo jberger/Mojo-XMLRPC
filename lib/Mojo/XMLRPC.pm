@@ -161,7 +161,7 @@ sub _decode_element {
       @{ $elem->children('member') }  # pairs
     };
 
-  } elsif ($tag eq 'int' || $tag eq 'i4') {
+  } elsif ($tag eq 'int' || $tag eq 'i4' || $tag eq 'i8') {
     return $elem->text + 0;
 
   } elsif ($tag eq 'string' || $tag eq 'name') {
