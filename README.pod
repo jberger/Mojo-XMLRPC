@@ -111,6 +111,28 @@ Values encoded as integers will not be truncated via C<int> however no attempt i
 Values encoded as floating point C<double> will be forcably upgraded to C<NOK> (by dividing by 1.0).
 This is so that an integer value encoded as a floating point will round trip, the reverse case isn't as useful and thus isn't handled.
 
+Non-Standard tags are also handled while converting to Perl.
+
+=over
+
+=item *
+
+C<i1>, C<i2>, C<i8> will be converted to C<int>
+
+=item *
+
+C<biginteger> will be converted to C<Math::BigInt> using C<bignum>
+
+=item *
+
+C<bigdecimal> will be converted to C<Math::BigFloat> using C<bignum>
+
+=item *
+
+C<float> will be handled like C<double>
+
+=back
+
 =head1 FUNCTIONS
 
 =head2 decode_xmlrpc

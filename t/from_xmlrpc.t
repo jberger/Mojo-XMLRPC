@@ -252,5 +252,75 @@ is_deeply $msg->fault, {
   faultString => 'Too many parameters.',
 }, 'correct parameters';
 
+$msg = from_xmlrpc(<<'MESSAGE');
+<?xml version="1.0"?>
+<methodResponse>
+   <params>
+      <param>
+        <value>
+          <array>
+            <data>
+              <value><i1>1</i1></value>
+              <value><i2>31</i2></value>
+              <value><i8>1336542467</i8></value>
+            </data>
+          </array>
+        </value>
+      </param>
+    </params>
+  </methodResponse>
+MESSAGE
+
+isa_ok $msg, 'Mojo::XMLRPC::Message::Response', 'correct message type';
+ok !$msg->is_fault, 'not a fault';
+is_deeply $msg->parameters, [[1, 31, 1336542467]], 'correct parameters';
+
+
+$msg = from_xmlrpc(<<'MESSAGE');
+<?xml version="1.0"?>
+<methodResponse>
+   <params>
+      <param>
+        <value>
+            <array>
+               <data>
+                 <value>
+                   <bigdecimal>50924950789635128309.6432068295145406106</bigdecimal>
+                 </value>
+               </data>
+            </array>
+         </value>
+      </param>
+   </params>
+</methodResponse>
+MESSAGE
+
+isa_ok $msg, 'Mojo::XMLRPC::Message::Response', 'correct message type';
+ok !$msg->is_fault, 'not a fault';
+is_deeply $msg->parameters, [[50924950789635128309.6432068295145406106]], 'correct parameters';
+
+$msg = from_xmlrpc(<<'MESSAGE');
+<?xml version="1.0"?>
+<methodResponse>
+   <params>
+      <param>
+        <value>
+            <array>
+               <data>
+                 <value>
+                   <biginteger>2432902008176640000</biginteger>
+                 </value>
+               </data>
+            </array>
+         </value>
+      </param>
+   </params>
+</methodResponse>
+MESSAGE
+
+isa_ok $msg, 'Mojo::XMLRPC::Message::Response', 'correct message type';
+ok !$msg->is_fault, 'not a fault';
+is_deeply $msg->parameters, [[2432902008176640000]], 'correct parameters';
+
 done_testing;
 

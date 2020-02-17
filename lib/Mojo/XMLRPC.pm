@@ -71,6 +71,30 @@ my $params = Mojo::Template->new(
   </params>
 TEMPLATE
 
+my %tags_dispatch_table = (
+  'param'             => \&_decode_param,
+  'value'             => \&_decode_param,
+  'fault'             => \&_decode_param,
+  'array'             => \&_decode_array,
+  'struct'            => \&_decode_struct,
+  'int'               => \&_decode_int,
+  'i4'                => \&_decode_int,
+  'string'            => \&_decode_string,
+  'name'              => \&_decode_name,
+  'double'            => \&_decode_double,
+  'boolean'           => \&_decode_boolean,
+  'nil'               => \&_decode_nil,
+  'dateTime.iso8601', => \&_decode_datetime,
+  'base64'            => \&_decode_base64,
+  # Adding non-standard tags
+  'i1'                => \&_decode_int,
+  'i2'                => \&_decode_int,
+  'i8'                => \&_decode_int,
+  'biginteger'        => \&_decode_biginteger,
+  'bigdecimal'        => \&_decode_bigdecimal,
+  'float'             => \&_decode_double
+);
+
 sub decode_xmlrpc { from_xmlrpc(Mojo::Util::decode 'UTF-8', $_[0]) }
 
 sub encode_xmlrpc { Mojo::Util::encode 'UTF-8', to_xmlrpc(@_) }
@@ -135,68 +159,103 @@ sub to_xmlrpc {
   return $message->process($tag, $method, defined($xml) ? Mojo::ByteStream->new($xml) : ());
 }
 
-sub _decode_element {
+sub _decode_param {
   my $elem = shift;
-  my $tag = $elem->tag;
+  my $children = $elem->children;
 
-  if ($tag eq 'param' || $tag eq 'value' || $tag eq 'fault') {
-    my $children = $elem->children;
+  # elements with no children must be strings
+  return $elem->text unless @$children;
 
-    # elements with no children must be strings
-    return $elem->text unless @$children;
+  # otherwise they are another element
+  return _decode_element($children->first);
+}
 
-    # otherwise they are another element
-    return _decode_element($children->first);
+sub _decode_array {
+  my $elem = shift;
+  my $data = $elem->children('data')->first;
+  return [ map { _decode_element($_) } @{ $data->children('value') } ];
+}
 
-  } elsif ($tag eq 'array') {
-    my $data = $elem->children('data')->first;
-    return [ map { _decode_element($_) } @{ $data->children('value') } ];
-
-  } elsif ($tag eq 'struct') {
-    return +{
+sub _decode_struct {
+  my $elem = shift;
+  return +{
       map {;
         $_->children('name')->first->text,              # key
         _decode_element($_->children('value')->first)   # value
       }
       @{ $elem->children('member') }  # pairs
     };
+}
+sub _decode_int {
+  my $elem = shift;
+  return $elem->text + 0;
+}
 
-  } elsif ($tag eq 'int' || $tag eq 'i4') {
-    return $elem->text + 0;
+sub _decode_string {
+  my $elem = shift;
+  return $elem->text;
+}
 
-  } elsif ($tag eq 'string' || $tag eq 'name') {
-    return $elem->text;
+sub _decode_double {
+  my $elem = shift;
+  return $elem->text / 1.0;
+}
 
-  } elsif ($tag eq 'double') {
-    return $elem->text / 1.0;
+sub _decode_boolean {
+  my $elem = shift;
+  return $elem->text ? Mojo::JSON::true : Mojo::JSON::false;
+}
 
-  } elsif ($tag eq 'boolean') {
-    return $elem->text ? Mojo::JSON::true : Mojo::JSON::false;
+sub _decode_nil {
+  return undef;
+}
 
-  } elsif ($tag eq 'nil') {
-    return undef;
-
-  } elsif ($tag eq 'dateTime.iso8601') {
-    my $date = Mojo::Date->new($elem->text);
-    unless ($date->epoch) {
-      require Time::Piece;
-      my $text = $elem->text;
-      PARSE: for my $time_format ('%H:%M:%S', '%H%M%S') {
-        for my $calendar_format ('%Y%m%d', '%Y-%m-%d') {
-          my $format = $calendar_format . 'T' . $time_format;
-          eval {
-            $date->epoch(Time::Piece->strptime($text, $format)->epoch);
-          };
-          last PARSE unless $@;
-        }
+sub _decode_datetime {
+  my $elem = shift;
+  my $date = Mojo::Date->new($elem->text);
+  unless ($date->epoch) {
+    require Time::Piece;
+    my $text = $elem->text;
+    PARSE: for my $time_format ('%H:%M:%S', '%H%M%S') {
+      for my $calendar_format ('%Y%m%d', '%Y-%m-%d') {
+        my $format = $calendar_format . 'T' . $time_format;
+        eval {
+          $date->epoch(Time::Piece->strptime($text, $format)->epoch);
+        };
+        last PARSE unless $@;
       }
     }
-    return $date;
-  } elsif ($tag eq 'base64') {
-    return Mojo::XMLRPC::Base64->new(encoded => $elem->text);
   }
+  return $date;
+}
 
-  die "unknown tag: $tag";
+sub _decode_base64 {
+  my $elem = shift;
+  return Mojo::XMLRPC::Base64->new(encoded => $elem->text);
+}
+
+sub _decode_biginteger {
+  my $elem = shift;
+  require bignum;
+  return $elem->text + 0;
+}
+
+sub _decode_bigdecimal {
+  my $elem = shift;
+  require bignum;
+  return $elem->text / 1.0;
+}
+
+sub _decode_element {
+  my $elem = shift;
+  my $tag = $elem->tag;
+
+  if (exists $tags_dispatch_table{$tag}) {
+    return $tags_dispatch_table{$tag}->($elem);
+  }
+  else {
+    die "unknown tag: $tag";
+  }
 }
 
 sub _encode_item {
@@ -368,6 +427,28 @@ The shortcuts for booleans will round-trip to being L<Mojo::JSON> booleans objec
 Values encoded as integers will not be truncated via C<int> however no attempt is made to upgrade them to C<IOK> or C<NOK>.
 Values encoded as floating point C<double> will be forcably upgraded to C<NOK> (by dividing by 1.0).
 This is so that an integer value encoded as a floating point will round trip, the reverse case isn't as useful and thus isn't handled.
+
+Non-Standard tags are also handled while converting to Perl.
+
+=over
+
+=item *
+
+C<i1>, C<i2>, C<i8> will be converted to C<int>
+
+=item *
+
+C<biginteger> will be converted to C<Math::BigInt> using C<bignum>
+
+=item *
+
+C<bigdecimal> will be converted to C<Math::BigFloat> using C<bignum>
+
+=item *
+
+C<float> will be handled like C<double>
+
+=back
 
 =head1 FUNCTIONS
 
