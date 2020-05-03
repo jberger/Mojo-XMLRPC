@@ -18,7 +18,7 @@ use Exporter 'import';
 
 our @EXPORT_OK = (qw[decode_xmlrpc encode_xmlrpc from_xmlrpc to_xmlrpc]);
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 $VERSION = eval $VERSION;
 
 my $message = Mojo::Template->new(
@@ -428,6 +428,8 @@ Joel Berger, E<lt>joel.a.berger@gmail.comE<gt>
 =head1 CONTRIBUTORS
 
 Andreas Vögele (voegelas)
+
+rai-gaurav
 
 =head1 COPYRIGHT AND LICENSE
 

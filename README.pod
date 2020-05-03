@@ -7,25 +7,12 @@ Mojo::XMLRPC - An XMLRPC message parser/encoder using the Mojo stack
 =head1 SYNOPSIS
 
   use Mojo::UserAgent;
-  use Mojo::XMLRPC qw[encode_xmlrpc decode_xmlrpc];
+  use Mojo::XMLRPC qw[to_xmlrpc from_xmlrpc];
 
   my $ua = Mojo::UserAgent->new;
   my $url = ...;
-  my $tx = $ua->post($url, {'Content-Type' => 'text/xml'}, encode_xmlrpc(call => 'mymethod', 'myarg'));
-  my $res = decode_xmlrpc($tx->res->body);
-
-Or using Content Generators L<Mojo::UserAgent::Transactor#add_generator> which are used to generate the same type of content repeatedly for multiple requests.
-
-  my $ua = Mojo::UserAgent->new;
-  $ua->transactor->add_generator(
-    xmlrpc => sub {
-      my ($transactor, $tx, @args) = @_;
-      $tx->req->headers->content_type('text/xml');
-      $tx->req->body(encode_xmlrpc(call => @args));
-    }
-  );
-  my $tx = $ua->post($url, xmlrpc => $method, @{$params});
-  my $res = decode_xmlrpc($tx->res->body);
+  my $tx = $ua->post($url, encode_xmlrpc(call => 'mymethod', 'myarg'));
+  my $res = decode_xmlrpc($tx->res->body)
 
 =head1 DESCRIPTION
 
@@ -180,8 +167,14 @@ L<http://github.com/jberger/Mojo-XMLRPC>
 
 Joel Berger, E<lt>joel.a.berger@gmail.comE<gt>
 
+=head1 CONTRIBUTORS
+
+Andreas Vögele (voegelas)
+
+rai-gaurav
+
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2017 by Joel Berger
+Copyright (C) 2017 by L</AUTHOR> and L</CONTRIBUTORS>
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
